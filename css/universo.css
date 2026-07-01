@@ -1,0 +1,24 @@
+/**
+ * The Universo view's own container + canvas mount. No Three.js
+ * styling lives here — this is purely the DOM/layout shell the
+ * js/universo/*.js scene renders into.
+ */
+
+#vista-universo {
+  background: #0a0410;
+  overflow: hidden;
+  touch-action: none; /* the drag-to-orbit controller owns pointer gestures here */
+}
+
+#universo-canvas-mount {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#universo-canvas-mount canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

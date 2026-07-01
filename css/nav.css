@@ -1,0 +1,113 @@
+/**
+ * Fixed glassmorphism view-switcher nav, plus the .vista transition
+ * mechanics it drives (js/nav.js toggles these classes). Small file
+ * on purpose — this is the only piece of "app chrome" shared by both
+ * views, so it lives outside either view's own stylesheet.
+ */
+
+/* top-right corner, not top-center — the Ramo view's own title text is
+   centered near the top, so a corner placement is the only position
+   that can never overlap it without touching that (frozen) view's CSS */
+.nav-vistas {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top, 0px));
+  right: max(10px, env(safe-area-inset-right, 0px));
+  z-index: 1000;
+  display: flex;
+  gap: 3px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .38), inset 0 1px 0 rgba(255, 255, 255, .08);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+}
+
+.nav-vistas button {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: rgba(255, 240, 246, .78);
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: .72rem;
+  letter-spacing: .4px;
+  line-height: 1;
+  padding: 9px 15px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background .3s ease, color .3s ease, box-shadow .3s ease, transform .2s ease;
+}
+
+.nav-vistas button:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, .08);
+}
+
+.nav-vistas button:active {
+  transform: scale(.96);
+}
+
+.nav-vistas button.activo {
+  color: #2a0f1c;
+  background: linear-gradient(135deg, #ffd9a8, #ff9fc7 55%, #c9a0ff);
+  box-shadow: 0 4px 16px rgba(255, 150, 190, .35);
+}
+
+.nav-vistas button .icono {
+  font-size: .95rem;
+}
+
+/* On narrow phones the Ramo view's title sits close enough to the top
+   edge that a full-width top-right nav can crowd it (that title's own
+   position is part of the frozen Ramo view, so it can't move) — shrink
+   to icon-only circular buttons instead, small enough to tuck into the
+   corner clear of both the title and the centered "toca la pantalla"
+   hint at the bottom. */
+@media (max-width: 480px) {
+  .nav-vistas {
+    top: auto;
+    bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    padding: 3px;
+    gap: 3px;
+  }
+  .nav-vistas button {
+    padding: 0;
+    width: 34px;
+    height: 34px;
+    justify-content: center;
+  }
+  .nav-vistas .label {
+    display: none;
+  }
+  .nav-vistas .icono {
+    font-size: 1.05rem;
+  }
+}
+
+/* ---------- view container transitions ---------- */
+
+.vista {
+  position: fixed;
+  inset: 0;
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1);
+  transition: opacity .42s cubic-bezier(.4, 0, .2, 1),
+              filter .42s cubic-bezier(.4, 0, .2, 1),
+              transform .42s cubic-bezier(.4, 0, .2, 1);
+}
+
+.vista--hidden-state {
+  opacity: 0;
+  filter: blur(10px);
+  transform: scale(1.045);
+  pointer-events: none;
+}
+
+.vista--desmontada {
+  display: none;
+}
