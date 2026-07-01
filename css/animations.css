@@ -81,6 +81,13 @@
   100% { opacity: 1; transform: scale(1) rotate(var(--rot, 0deg)); }
 }
 
+/* filler foliage: opacity only — rotation/scale are static inline
+   styles on .hoja-relleno itself, see the comment in bouquet.css */
+@keyframes apareceHojaRelleno {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
 @keyframes floreceFlor {
   0% { opacity: 0; transform: translate(-50%, -72%) scale(0) rotate(-15deg); }
   70% { opacity: 1; }

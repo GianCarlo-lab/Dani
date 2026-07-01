@@ -40,6 +40,14 @@
   animation: creceBrizna 1s ease-out forwards;
 }
 
+/* front grass: explicitly stacked above every flower band so a few
+   blades visibly overlap the bouquet's lower edge — reads as "growing
+   out of a garden bed" instead of "flowers floating over grass" */
+.brizna-frente {
+  z-index: var(--z-particles);
+  background: linear-gradient(to top, #142f18, #366e3b 55%, #48a052);
+}
+
 /* stems container: anchored a little below the visible bottom edge,
    so the bouquet reads as growing up out of frame, not sitting on a base */
 .tallos {
@@ -123,6 +131,25 @@
   width: 100%;
   height: 100%;
   overflow: visible;
+}
+
+/* filler foliage: standalone SVG leaves/buds scattered through the
+   bouquet's own volume (js/bouquet.js buildFillerFoliage), not tied to
+   any one stem — these are what close the dark gaps between flowers.
+   Rotation/scale are baked into the element's own static inline
+   transform at build time, so the entrance keyframe only ever touches
+   opacity — never fight the two over the `transform` property. */
+.hoja-relleno {
+  position: absolute;
+  transform-origin: center bottom;
+  opacity: 0;
+  pointer-events: none;
+  animation: apareceHojaRelleno .7s ease forwards;
+}
+
+.hoja-relleno svg {
+  display: block;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .25));
 }
 
 /* independent leaf flutter, a lighter/faster echo of the stem sway */

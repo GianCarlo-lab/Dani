@@ -194,7 +194,11 @@
     var g = buildGradientDefs(index, s, rand);
     var u = g.urls;
     var m = g.defs;
-    m += ring(14, 0, 44, 5, u.outer, 0.95, petalRound, rand, true);
+    // 14 thin petals is already a lot of geometry (there are 8 daisies
+    // in the bouquet) — skip the shadow-petal+rim-light treatment here
+    // (still gradient-filled, just not the 3x-path decoration) to keep
+    // total SVG node count in check without losing the gradient depth
+    m += ring(14, 0, 44, 5, u.outer, 0.95, petalRound, rand, false);
     m += ring(14, 12.8, 30, 4, u.mid, 0.5, petalRound, rand, false);
     m += '<circle cx="50" cy="50" r="12" fill="' + s.core + '" opacity="0.95"/>';
     for (var i = 0; i < 9; i++) {
@@ -269,74 +273,250 @@
     return esp.render(set, rand, index);
   }
 
-  /* ---------- bouquet layout: ALL stems share the same base point (x:0) —
-     like a real hand-tied bouquet — and only fan out by rotation angle,
-     never by horizontal position. Three depth bands (back/mid/front,
-     tallest+thinnest to shortest+biggest) give the composition a sense
-     of front-to-back depth; `curveDir`/`curveMag` are placeholders for
-     stem curvature added in a later pass (magnitude 0 = still straight
-     for now). Every entry below always gets exactly one flower,
-     verified 1:1 with tallos.length === 36. Roses stay the most
-     numerous species (8) per an earlier "triple the roses" request;
-     all 7 species are represented across every band. */
-  var tallos = [
-    // --- back band: tallest & thinnest, widest fan, sits behind everything ---
-    { rot: -33, h: 340, size: 40, tipo: 'rosa', v: 0, depth: 'back', curveDir: 1, curveMag: 0 },
-    { rot: -29, h: 365, size: 42, tipo: 'narciso', v: 1, depth: 'back', curveDir: -1, curveMag: 0 },
-    { rot: -24, h: 355, size: 41, tipo: 'margarita', v: 0, depth: 'back', curveDir: 1, curveMag: 0 },
-    { rot: -20, h: 380, size: 44, tipo: 'lirio', v: 0, depth: 'back', curveDir: -1, curveMag: 0 },
-    { rot: -15, h: 395, size: 46, tipo: 'silvestre', v: 1, depth: 'back', curveDir: 1, curveMag: 0 },
-    { rot: -10, h: 405, size: 48, tipo: 'amapola', v: 1, depth: 'back', curveDir: -1, curveMag: 0 },
-    { rot: -5, h: 415, size: 49, tipo: 'tulipan', v: 0, depth: 'back', curveDir: 1, curveMag: 0 },
-    { rot: 3, h: 400, size: 47, tipo: 'rosa', v: 2, depth: 'back', curveDir: -1, curveMag: 0 },
-    { rot: 8, h: 390, size: 45, tipo: 'lirio', v: 1, depth: 'back', curveDir: 1, curveMag: 0 },
-    { rot: 13, h: 370, size: 43, tipo: 'margarita', v: 1, depth: 'back', curveDir: -1, curveMag: 0 },
-    { rot: 18, h: 350, size: 42, tipo: 'tulipan', v: 1, depth: 'back', curveDir: 1, curveMag: 0 },
-    { rot: 23, h: 360, size: 41, tipo: 'silvestre', v: 0, depth: 'back', curveDir: -1, curveMag: 0 },
-    { rot: 28, h: 345, size: 40, tipo: 'amapola', v: 0, depth: 'back', curveDir: 1, curveMag: 0 },
-    { rot: 32, h: 335, size: 40, tipo: 'narciso', v: 0, depth: 'back', curveDir: -1, curveMag: 0 },
+  /* ---------- bouquet layout: a WIDE, garden-bed-like base ----------
+     Unlike an earlier version of this page (a hand-held bouquet with
+     every stem sharing one base point), this is meant to read as a
+     full, abundant garden bed — so each stem now has its own base
+     position (`x`) spread across a wide footprint, not just a shared
+     origin fanning out by angle alone.
 
-    // --- mid band: medium height, fills the silhouette between back and front ---
-    { rot: -30, h: 260, size: 50, tipo: 'tulipan', v: 2, depth: 'mid', curveDir: -1, curveMag: 0 },
-    { rot: -25, h: 280, size: 53, tipo: 'rosa', v: 1, depth: 'mid', curveDir: 1, curveMag: 0 },
-    { rot: -19, h: 270, size: 56, tipo: 'silvestre', v: 2, depth: 'mid', curveDir: -1, curveMag: 0 },
-    { rot: -13, h: 295, size: 58, tipo: 'lirio', v: 0, depth: 'mid', curveDir: 1, curveMag: 0 },
-    { rot: -7, h: 305, size: 60, tipo: 'amapola', v: 1, depth: 'mid', curveDir: -1, curveMag: 0 },
-    { rot: -1, h: 315, size: 62, tipo: 'margarita', v: 1, depth: 'mid', curveDir: 1, curveMag: 0 },
-    { rot: 4, h: 300, size: 60, tipo: 'rosa', v: 0, depth: 'mid', curveDir: -1, curveMag: 0 },
-    { rot: 9, h: 285, size: 58, tipo: 'narciso', v: 1, depth: 'mid', curveDir: 1, curveMag: 0 },
-    { rot: 14, h: 275, size: 55, tipo: 'silvestre', v: 0, depth: 'mid', curveDir: -1, curveMag: 0 },
-    { rot: 19, h: 265, size: 53, tipo: 'tulipan', v: 0, depth: 'mid', curveDir: 1, curveMag: 0 },
-    { rot: 24, h: 255, size: 51, tipo: 'lirio', v: 1, depth: 'mid', curveDir: -1, curveMag: 0 },
-    { rot: 28, h: 250, size: 49, tipo: 'rosa', v: 2, depth: 'mid', curveDir: 1, curveMag: 0 },
+     48 stems across an EXACT species count (10 rosa / 8 margarita /
+     6 tulipan / 5 lirio / 5 amapola / 4 narciso / 10 silvestre) would
+     be impractical to hand-type reliably and keep correct through
+     future edits, so the dataset is generated once, deterministically
+     (same seed → identical layout every load, same reproducibility
+     the earlier hand-authored array had) by buildTallosDataset()
+     below, from a compact per-band config instead. Three depth bands
+     (back/mid/front) still control z-index + shading (see
+     computeDesignBounds / bouquet.css [data-depth]). */
 
-    // --- front band: shortest & biggest, main visible blooms, sits in front ---
-    { rot: -23, h: 175, size: 56, tipo: 'rosa', v: 0, depth: 'front', curveDir: 1, curveMag: 0 },
-    { rot: -17, h: 195, size: 60, tipo: 'margarita', v: 0, depth: 'front', curveDir: -1, curveMag: 0 },
-    { rot: -11, h: 215, size: 66, tipo: 'lirio', v: 0, depth: 'front', curveDir: 1, curveMag: 0 },
-    { rot: -5, h: 230, size: 72, tipo: 'amapola', v: 0, depth: 'front', curveDir: -1, curveMag: 0 },
-    { rot: 1, h: 240, size: 80, tipo: 'rosa', v: 1, depth: 'front', curveDir: 1, curveMag: 0 },
-    { rot: 6, h: 235, size: 74, tipo: 'tulipan', v: 1, depth: 'front', curveDir: -1, curveMag: 0 },
-    { rot: 9, h: 220, size: 68, tipo: 'silvestre', v: 1, depth: 'front', curveDir: 1, curveMag: 0 },
-    { rot: 12, h: 200, size: 62, tipo: 'rosa', v: 2, depth: 'front', curveDir: -1, curveMag: 0 },
-    { rot: 18, h: 180, size: 58, tipo: 'narciso', v: 0, depth: 'front', curveDir: 1, curveMag: 0 },
-    { rot: 22, h: 225, size: 70, tipo: 'amapola', v: 1, depth: 'front', curveDir: -1, curveMag: 0 }
-  ];
+  var SPECIES_COUNTS_PER_BAND = {
+    back: { rosa: 3, margarita: 2, tulipan: 1, lirio: 2, amapola: 1, narciso: 1, silvestre: 4 },
+    mid: { rosa: 4, margarita: 3, tulipan: 3, lirio: 2, amapola: 2, narciso: 2, silvestre: 2 },
+    front: { rosa: 3, margarita: 3, tulipan: 2, lirio: 1, amapola: 2, narciso: 1, silvestre: 4 }
+  };
 
-  var NUM_BRIZNAS = 24;
+  // back: small + tall + desaturated (handled by [data-depth] in CSS), furthest back.
+  //   Kept nearly vertical (low rotCorr) on purpose: a tall stem at even
+  //   a modest angle sweeps a lot of horizontal reach (h * sin(rot)), so
+  //   the "wide base" here comes mostly from x-spread, not from angling
+  //   the tallest stems outward too.
+  // mid: the main, most colorful mass of the arrangement.
+  // front: the biggest, most open blooms, closest to the viewer, angled
+  //   outward the most (they're short, so that costs little reach) —
+  //   this is what actually reads as "abanico natural" up close.
+  var BAND_RANGES = {
+    back: { x: [-55, 55], rotCorr: 0.06, rotJitter: 4, h: [340, 430], size: [38, 50] },
+    mid: { x: [-50, 50], rotCorr: 0.20, rotJitter: 7, h: [220, 300], size: [52, 66] },
+    front: { x: [-44, 44], rotCorr: 0.28, rotJitter: 8, h: [130, 210], size: [62, 86] }
+  };
 
-  /** Grass blades clustered around the shared stem base point. */
+  /** Deterministic Fisher-Yates shuffle (keeps the layout reproducible). */
+  function shuffleDeterministic(arr, rand) {
+    var out = arr.slice();
+    for (var i = out.length - 1; i > 0; i--) {
+      var j = Math.floor(rand() * (i + 1));
+      var tmp = out[i]; out[i] = out[j]; out[j] = tmp;
+    }
+    return out;
+  }
+
+  /**
+   * Builds the 48-stem dataset: for each band, expands the species
+   * counts into a flat list, shuffles it (so the same species isn't
+   * clustered together left-to-right), then spreads those stems
+   * evenly across the band's x range with jitter on every dimension
+   * (position, angle, height, size, curve direction) so nothing lines
+   * up or looks copy-pasted.
+   */
+  function buildTallosDataset() {
+    var rand = Bouquet.utils.mulberry32(Bouquet.utils.seedFromString('bouquet-layout-jardin-v1'));
+    var variantCursor = {};
+    var dataset = [];
+
+    ['back', 'mid', 'front'].forEach(function (depth) {
+      var counts = SPECIES_COUNTS_PER_BAND[depth];
+      var range = BAND_RANGES[depth];
+      var speciesList = [];
+      Object.keys(counts).forEach(function (tipo) {
+        for (var n = 0; n < counts[tipo]; n++) speciesList.push(tipo);
+      });
+      speciesList = shuffleDeterministic(speciesList, rand);
+
+      speciesList.forEach(function (tipo, i) {
+        var t = (i + 0.5) / speciesList.length;
+        var x = Bouquet.utils.lerp(range.x[0], range.x[1], t) + (rand() - 0.5) * 10;
+        var rot = x * range.rotCorr + (rand() - 0.5) * 2 * range.rotJitter;
+        var h = Bouquet.utils.randRange(range.h[0], range.h[1], rand);
+        var size = Bouquet.utils.randRange(range.size[0], range.size[1], rand);
+        var curveDir = rand() > 0.5 ? 1 : -1;
+
+        var variantCount = especies[tipo].sets.length;
+        variantCursor[tipo] = variantCursor[tipo] || 0;
+        var v = variantCursor[tipo] % variantCount;
+        variantCursor[tipo]++;
+
+        dataset.push({
+          x: x, rot: rot, h: h, size: size,
+          tipo: tipo, v: v, depth: depth,
+          curveDir: curveDir, curveMag: 0
+        });
+      });
+    });
+
+    return dataset;
+  }
+
+  var tallos = buildTallosDataset();
+
+  // Shared with computeDesignBounds below — a rotated grass blade's tip
+  // can swing sideways well past its own base x position (height *
+  // sin(rotation)), so the "never clip" scale calculation needs these
+  // same worst-case numbers, not just the flowers'. Keep both in sync.
+  var GRASS_CONFIGS = {
+    back: { count: 60, maxX: 130, minH: 55, maxH: 140, rotBase: 14, rotJitter: 5 },
+    front: { count: 26, maxX: 140, minH: 30, maxH: 85, rotBase: 12, rotJitter: 5 }
+  };
+
+  /**
+   * Back grass: wide, tall, behind everything (default stacking, no
+   * explicit z-index — every flower band's z-index beats "auto"), so
+   * it reads as the garden bed the bouquet grows out of rather than a
+   * thin decorative fringe at the sides.
+   */
   function buildBriznas(ramo) {
-    for (var i = 0; i < NUM_BRIZNAS; i++) {
-      var bx = -85 + (170 / (NUM_BRIZNAS - 1)) * i + (Math.random() * 8 - 4);
+    var c = GRASS_CONFIGS.back;
+    for (var i = 0; i < c.count; i++) {
+      var bx = -c.maxX + ((c.maxX * 2) / (c.count - 1)) * i + (Math.random() * 10 - 5);
       var el = document.createElement('div');
       el.className = 'brizna';
       el.style.left = 'calc(50% + ' + bx + 'px)';
-      el.style.height = (55 + Math.random() * 120) + 'px';
-      el.style.transform = 'rotate(' + ((bx / 85) * 24 + (Math.random() * 10 - 5)) + 'deg)';
-      el.style.animationDelay = (0.15 + Math.random() * 0.6) + 's';
+      el.style.height = (c.minH + Math.random() * (c.maxH - c.minH)) + 'px';
+      el.style.transform = 'rotate(' + ((bx / c.maxX) * c.rotBase + (Math.random() * c.rotJitter * 2 - c.rotJitter)) + 'deg)';
+      el.style.animationDelay = (0.1 + Math.random() * 0.7) + 's';
       ramo.appendChild(el);
     }
+  }
+
+  /**
+   * Front grass: shorter blades explicitly stacked ABOVE the flowers
+   * (`.brizna-frente`'s z-index beats even the front band) and built
+   * last, so a few blades visibly overlap the lower edge of the
+   * bouquet — the detail that sells "growing out of a garden bed"
+   * instead of "flowers floating over grass".
+   */
+  function buildBriznasFrente(ramo) {
+    var c = GRASS_CONFIGS.front;
+    for (var i = 0; i < c.count; i++) {
+      var bx = -c.maxX + ((c.maxX * 2) / (c.count - 1)) * i + (Math.random() * 12 - 6);
+      var el = document.createElement('div');
+      el.className = 'brizna brizna-frente';
+      el.style.left = 'calc(50% + ' + bx + 'px)';
+      el.style.height = (c.minH + Math.random() * (c.maxH - c.minH)) + 'px';
+      el.style.transform = 'rotate(' + ((bx / c.maxX) * c.rotBase + (Math.random() * c.rotJitter * 2 - c.rotJitter)) + 'deg)';
+      el.style.animationDelay = (0.2 + Math.random() * 0.8) + 's';
+      ramo.appendChild(el);
+    }
+  }
+
+  /* ---------- filler foliage: SVG leaves + buds scattered through the
+     bouquet's own volume (not just at stem bases) to close the dark
+     gaps between individual flowers — this is what turns a handful of
+     blooms into something that reads as a full, leafy arrangement. ---------- */
+
+  var LEAF_KINDS = {
+    lanceolada: { width: 7, length: 40 },  // long, narrow, pointed
+    redonda: { width: 12, length: 20 },    // round/oval
+    grande: { width: 15, length: 48 },     // large, broad
+    pequena: { width: 5.5, length: 15 }    // small, simple
+  };
+
+  var LEAF_TONES = {
+    oscura: { light: '#5c8f52', dark: '#1e3a20' },
+    clara: { light: '#a9d68f', dark: '#5c8f52' },
+    semitransparente: { light: '#8fbf7a', dark: '#33582f', opacity: 0.55 }
+  };
+
+  var leafIdCounter = 0;
+
+  /** One SVG leaf: a gradient-filled blade with a faint center vein. */
+  function leafSVG(kindName, toneName) {
+    var kind = LEAF_KINDS[kindName];
+    var tone = LEAF_TONES[toneName];
+    var id = 'hojagrad-' + (leafIdCounter++);
+    var w = kind.width, len = kind.length;
+    var d = 'M' + w + ',' + len
+          + ' C0,' + (len * 0.6) + ' ' + (w * 0.3) + ',' + (len * 0.12) + ' ' + w + ',0'
+          + ' C' + (w * 1.7) + ',' + (len * 0.12) + ' ' + (w * 2) + ',' + (len * 0.6) + ' ' + w + ',' + len + ' Z';
+    return '<svg viewBox="0 0 ' + (w * 2) + ' ' + len + '" width="' + (w * 2) + '" height="' + len + '" xmlns="http://www.w3.org/2000/svg">'
+      + '<defs><linearGradient id="' + id + '" x1="0" y1="1" x2="0" y2="0">'
+      + '<stop offset="0%" stop-color="' + tone.dark + '"/>'
+      + '<stop offset="100%" stop-color="' + tone.light + '"/>'
+      + '</linearGradient></defs>'
+      + '<path d="' + d + '" fill="url(#' + id + ')" opacity="' + (tone.opacity || 0.96) + '"/>'
+      + '<line x1="' + w + '" y1="' + (len * 0.92) + '" x2="' + w + '" y2="' + (len * 0.1) + '" stroke="rgba(255,255,255,.28)" stroke-width="0.7"/>'
+      + '</svg>';
+  }
+
+  /** A small budding sprout — a teardrop with a soft radial highlight. */
+  function broteSVG(toneName) {
+    var tone = LEAF_TONES[toneName];
+    var id = 'brotegrad-' + (leafIdCounter++);
+    return '<svg viewBox="0 0 14 20" width="14" height="20" xmlns="http://www.w3.org/2000/svg">'
+      + '<defs><radialGradient id="' + id + '" cx="38%" cy="28%" r="75%">'
+      + '<stop offset="0%" stop-color="' + tone.light + '"/><stop offset="100%" stop-color="' + tone.dark + '"/>'
+      + '</radialGradient></defs>'
+      + '<path d="M7,20 C1,14 1,5 7,0 C13,5 13,14 7,20 Z" fill="url(#' + id + ')" opacity="0.95"/>'
+      + '</svg>';
+  }
+
+  var FOLIAGE_BANDS = [
+    { depth: 'back', count: 14, x: [-70, 70], y: [40, 300] },
+    { depth: 'mid', count: 16, x: [-62, 62], y: [15, 220] },
+    { depth: 'front', count: 16, x: [-55, 55], y: [5, 170] }
+  ];
+
+  /**
+   * Scatters leaves/buds through the bouquet's own footprint (using
+   * the same x/y neighborhoods the flowers occupy, per band), not just
+   * near the stem bases — deliberately placed to sit *between* and
+   * *around* flowers so there are no bare gaps of background showing
+   * through the middle of the arrangement. Uses the same [data-depth]
+   * z-index/shading bands as the flowers so filler leaves interleave
+   * naturally with blooms in the same layer instead of always sitting
+   * strictly above or below the whole bouquet.
+   */
+  function buildFillerFoliage(container) {
+    var rand = Bouquet.utils.mulberry32(Bouquet.utils.seedFromString('follaje-relleno-v1'));
+    var kindNames = Object.keys(LEAF_KINDS);
+    var toneNames = Object.keys(LEAF_TONES);
+
+    FOLIAGE_BANDS.forEach(function (band) {
+      for (var i = 0; i < band.count; i++) {
+        var isBud = rand() < 0.22;
+        var x = Bouquet.utils.randRange(band.x[0], band.x[1], rand);
+        var y = Bouquet.utils.randRange(band.y[0], band.y[1], rand);
+        var rot = Bouquet.utils.randRange(-65, 65, rand);
+        var scale = Bouquet.utils.randRange(0.75, 1.35, rand);
+        var tone = toneNames[Math.floor(rand() * toneNames.length)];
+
+        var wrap = document.createElement('div');
+        wrap.className = 'hoja-relleno';
+        wrap.dataset.depth = band.depth;
+        wrap.style.left = 'calc(50% + ' + x.toFixed(1) + 'px)';
+        wrap.style.bottom = y.toFixed(1) + 'px';
+        wrap.style.transform = 'translate(-50%,0) rotate(' + rot.toFixed(1) + 'deg) scale(' + scale.toFixed(2) + ')';
+        wrap.style.animationDelay = (rand() * 1.4).toFixed(2) + 's';
+
+        if (isBud) {
+          wrap.innerHTML = broteSVG(tone);
+        } else {
+          var kind = kindNames[Math.floor(rand() * kindNames.length)];
+          wrap.innerHTML = leafSVG(kind, tone);
+        }
+        container.appendChild(wrap);
+      }
+    });
   }
 
   var STEM_HALF_WIDTH_BY_DEPTH = { back: 4, mid: 5.2, front: 6.5 };
@@ -417,7 +597,7 @@
     var grupo = document.createElement('div');
     grupo.className = 'tallo-grupo';
     grupo.dataset.depth = t.depth || 'mid';
-    grupo.style.left = '50%';
+    grupo.style.left = 'calc(50% + ' + (t.x || 0) + 'px)';
     grupo.style.transform = 'rotate(' + t.rot + 'deg)';
     tallosWrap.appendChild(grupo);
 
@@ -517,6 +697,9 @@
     tallos.forEach(function (t, i) {
       buildTallo(t, i, tallosWrap);
     });
+
+    buildFillerFoliage(tallosWrap);
+    buildBriznasFrente(container);
   }
 
   /**
@@ -532,11 +715,23 @@
     var maxReachY = 0;
     tallos.forEach(function (t) {
       var rad = Bouquet.utils.degToRad(Math.abs(t.rot));
-      var reachX = t.h * Math.sin(rad) + t.size * 0.6;
+      var reachX = Math.abs(t.x || 0) + t.h * Math.sin(rad) + t.size * 0.6;
       var reachY = t.h * Math.cos(rad) + t.size * 0.75;
       if (reachX > maxReachX) maxReachX = reachX;
       if (reachY > maxReachY) maxReachY = reachY;
     });
+
+    // grass blades rotate too, and their tip can swing sideways well
+    // past their own base x — must be included here or narrow
+    // viewports can clip a grass tip even though every flower fits
+    Object.keys(GRASS_CONFIGS).forEach(function (key) {
+      var c = GRASS_CONFIGS[key];
+      var rad = Bouquet.utils.degToRad(c.rotBase + c.rotJitter);
+      var reachX = c.maxX + c.maxH * Math.sin(rad);
+      if (reachX > maxReachX) maxReachX = reachX;
+      if (c.maxH > maxReachY) maxReachY = c.maxH;
+    });
+
     return { width: maxReachX * 2 + 40, height: maxReachY + 40 };
   }
 
