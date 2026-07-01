@@ -1,0 +1,200 @@
+/**
+ * The bouquet itself: grass, stems, leaves, and flowers. The bouquet is
+ * built entirely by js/bouquet.js into the empty #ramo container — this
+ * file only styles the elements that JS creates. Keyframes referenced
+ * below live in animations.css.
+ *
+ * Structural note: .tallo-grupo is a zero-size, absolutely positioned
+ * div that rotates as ONE rigid unit (stem + leaves + flower anchor).
+ * .flor-anchor sits at `bottom:${h}px` inside it and counter-rotates,
+ * so the flower always renders upright exactly at its own stem's tip,
+ * regardless of the stem's fan angle. Do not change this relationship
+ * without re-verifying every stem in the dataset still attaches its
+ * flower correctly (see js/bouquet.js buildTallo comments).
+ */
+
+/* Bouquet: no base/pot — stems just grow up from beyond the bottom edge.
+   --bouquet-scale is computed in js/app.js from the real viewport size
+   against the dataset's own bounding box (bouquet.js computeDesignBounds)
+   — this is the single mechanism that keeps the bouquet fully on-screen
+   from 320px phones up to 4K displays, scaled from its bottom-center
+   pin point so the shared stem origin never drifts sideways. */
+.ramo {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%) scale(var(--bouquet-scale, 1));
+  transform-origin: 50% 100%;
+  width: min(99vw, 520px);
+  height: 100%;
+}
+
+.brizna {
+  position: absolute;
+  bottom: -25px;
+  width: 3px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(to top, #0f2c17, #2e6b3e 55%, #3d8a50);
+  transform-origin: bottom center;
+  opacity: 0;
+  animation: creceBrizna 1s ease-out forwards;
+}
+
+/* stems container: anchored a little below the visible bottom edge,
+   so the bouquet reads as growing up out of frame, not sitting on a base */
+.tallos {
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+
+.tallo-grupo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
+}
+
+/* Depth-of-field bands: back stems sit behind, look further away
+   (dimmer, less saturated, lighter shadow); front stems sit in front,
+   read as closer (brighter, richer, stronger shadow). The custom
+   properties set here are consumed by the single filter declaration
+   on .flor svg below — one source of truth per band, not three
+   duplicated filter chains. */
+[data-depth="back"] {
+  z-index: var(--z-bouquet-back);
+  --depth-brightness: var(--depth-back-brightness);
+  --depth-saturate: var(--depth-back-saturate);
+  --depth-shadow: var(--depth-back-shadow);
+}
+
+[data-depth="mid"] {
+  z-index: var(--z-bouquet-mid);
+  --depth-brightness: var(--depth-mid-brightness);
+  --depth-saturate: var(--depth-mid-saturate);
+  --depth-shadow: var(--depth-mid-shadow);
+}
+
+[data-depth="front"] {
+  z-index: var(--z-bouquet-front);
+  --depth-brightness: var(--depth-front-brightness);
+  --depth-saturate: var(--depth-front-saturate);
+  --depth-shadow: var(--depth-front-shadow);
+}
+
+/* Continuous wind sway, layered ON TOP OF the static fan angle above —
+   never edit .tallo-grupo's rotation to add motion, always add a new
+   nested layer like this one instead, or you'll fight the counter-
+   rotation on .flor-anchor (see the file-level comment in bouquet.js). */
+.tallo-sway {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
+  animation-name: balanceoTallo;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.tallo-sway.sway-boost {
+  animation-name: balanceoTalloFuerte;
+  animation-duration: 1.1s !important;
+}
+
+/* curved, tapered stem — an SVG path injected by js/bouquet.js.
+   Grows in via `transform:scaleY()` (not `height`) so the entrance
+   animation stays compositor-friendly; the wrapper's own left/width
+   just position the already-sized SVG, they never animate. */
+.tallo-svg-wrap {
+  position: absolute;
+  bottom: 0;
+  transform-origin: bottom center;
+  animation: creceTalloSVG 0.9s ease-out forwards;
+}
+
+.tallo-svg-wrap svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* independent leaf flutter, a lighter/faster echo of the stem sway */
+.hoja-sway-wrap {
+  position: absolute;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
+  animation-name: balanceoHoja;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.hoja {
+  position: absolute;
+  width: 17px;
+  height: 10px;
+  background: linear-gradient(135deg, #5aa66a, #3d7d4c);
+  border-radius: 0 100% 0 100%;
+  opacity: 0;
+  animation: apareceHoja .6s ease forwards;
+}
+
+.hoja.euca {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #a9c2a0, #7c9f79 70%, #5f8663);
+}
+
+/* anchor sitting exactly at the tip of the (rotated) stem; it
+   counter-rotates so every bloom faces the same upright direction */
+.flor-anchor {
+  position: absolute;
+  left: 0;
+  width: 0;
+  height: 0;
+}
+
+/* flower bloom */
+.flor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -72%) scale(0);
+  opacity: 0;
+  animation: floreceFlor .9s cubic-bezier(.34, 1.56, .64, 1) forwards;
+}
+
+/* inner wrapper the tap "bloom open" pulse animates — kept separate
+   from .flor itself so toggling it never restarts .flor's own
+   one-shot entrance animation (see js/animations.js triggerBloomOpen) */
+.flor-cara {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: center;
+}
+
+.flor-cara.abriendo {
+  animation: floreceFlorApertura .8s ease-out;
+}
+
+.flor svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  animation: respirar 4.5s ease-in-out infinite;
+  animation-delay: inherit;
+  filter:
+    drop-shadow(var(--depth-shadow, 0 3px 6px rgba(0, 0, 0, .35)))
+    drop-shadow(0 0 10px rgba(255, 220, 150, .15))
+    brightness(var(--depth-brightness, 1))
+    saturate(var(--depth-saturate, 1));
+}

@@ -1,0 +1,52 @@
+/**
+ * Breakpoint-specific overrides only. The bouquet's own fit across
+ * screen sizes is handled by the --bouquet-scale mechanism in
+ * js/app.js + bouquet.css, so this file stays intentionally thin —
+ * it only covers what a uniform scale transform can't (text reflow,
+ * safe-area insets, very large screens).
+ */
+
+/* very narrow phones (320-340px): tighten the dedication text so its
+   three subtitle lines don't wrap awkwardly */
+@media (max-width: 340px) {
+  .titulo {
+    font-size: clamp(1.3rem, 8vw, 2rem);
+    letter-spacing: 1px;
+  }
+  .titulo .linea {
+    font-size: clamp(.62rem, 3.4vw, .8rem);
+    letter-spacing: 0;
+  }
+}
+
+/* short/landscape phones: the title block competes with the bouquet
+   for vertical space in a way --bouquet-scale alone can't fix, since
+   the title itself sits outside the scaled bouquet wrapper */
+@media (max-height: 420px) {
+  .titulo {
+    top: 2%;
+  }
+  .titulo .linea {
+    margin-top: 3px;
+  }
+  .titulo .firma {
+    margin-top: 5px;
+  }
+  .toca {
+    bottom: 1%;
+  }
+}
+
+/* safe-area insets for notched devices */
+.toca {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* very large / 4K screens: keep the composition from feeling like a
+   tiny island in a vast letterboxed viewport */
+@media (min-width: 2000px) {
+  .stage {
+    max-width: 2600px;
+    margin: 0 auto;
+  }
+}

@@ -1,0 +1,117 @@
+/**
+ * Every @keyframes definition used across the page. The elements that
+ * trigger them (via an `animation:` shorthand) live in their own
+ * structural stylesheet (style.css / bouquet.css) — this file only
+ * defines the motion itself, so it stays the single place to tune
+ * timing/easing without hunting through structural rules.
+ */
+
+/* ---------- ambient particles ---------- */
+@keyframes sparkle {
+  0% { opacity: 0; transform: scale(0); }
+  50% { opacity: .9; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0); }
+}
+
+@keyframes flotar {
+  0% { opacity: 0; transform: translateY(0) scale(.6) rotate(0deg); }
+  15% { opacity: .9; }
+  85% { opacity: .5; }
+  100% { opacity: 0; transform: translateY(-260px) scale(1) rotate(20deg); }
+}
+
+@keyframes polvoDorado {
+  0% { opacity: 0; transform: translate(0, 0); }
+  15% { opacity: .8; }
+  85% { opacity: .5; }
+  100% { opacity: 0; transform: translate(var(--polen-dx, 10px), -70px); }
+}
+
+@keyframes caidaPetalo {
+  0% { opacity: 0; transform: translate(0, 0) rotate(0deg) scale(.6); }
+  10% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--petal-dx, 20px), 90px) rotate(var(--petal-rot, 140deg)) scale(1); }
+}
+
+/* ---------- always-on background layer ---------- */
+@keyframes bokehAparece {
+  0% { opacity: 0; }
+  100% { opacity: var(--bokeh-final-opacity, .15); }
+}
+
+@keyframes bokehFlota {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(16px, -18px) scale(1.06); }
+}
+
+@keyframes parpadeoEstrella {
+  0%, 100% { opacity: .15; }
+  50% { opacity: var(--star-max-opacity, .9); }
+}
+
+/* ---------- dedication text entrance ---------- */
+@keyframes apareceLinea {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes apareceTituloMain {
+  0% { opacity: 0; transform: translate(-50%, 10px); }
+  100% { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes latido {
+  0%, 100% { opacity: .55; }
+  50% { opacity: 1; }
+}
+
+/* ---------- bouquet growth ---------- */
+@keyframes creceBrizna {
+  0% { height: 0; opacity: 0; }
+  100% { opacity: .9; }
+}
+
+@keyframes creceTalloSVG {
+  0% { transform: scaleY(0); opacity: 0; }
+  100% { transform: scaleY(1); opacity: 1; }
+}
+
+@keyframes apareceHoja {
+  0% { opacity: 0; transform: scale(0) rotate(var(--rot, 0deg)); }
+  100% { opacity: 1; transform: scale(1) rotate(var(--rot, 0deg)); }
+}
+
+@keyframes floreceFlor {
+  0% { opacity: 0; transform: translate(-50%, -72%) scale(0) rotate(-15deg); }
+  70% { opacity: 1; }
+  100% { opacity: 1; transform: translate(-50%, -72%) scale(1) rotate(0deg); }
+}
+
+@keyframes respirar {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.035) rotate(1.5deg); }
+}
+
+/* tap-triggered "bloom open" pulse, see .flor-cara */
+@keyframes floreceFlorApertura {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  30% { transform: scale(1.14) rotate(-3deg); }
+  60% { transform: scale(1.05) rotate(2deg); }
+}
+
+/* ---------- continuous wind sway (idle, after entrance) ---------- */
+@keyframes balanceoTallo {
+  0%, 100% { transform: rotate(-1.4deg); }
+  50% { transform: rotate(1.6deg); }
+}
+
+/* a brief stronger gust, swapped in on tap for nearby stems */
+@keyframes balanceoTalloFuerte {
+  0%, 100% { transform: rotate(-3.2deg); }
+  50% { transform: rotate(3.6deg); }
+}
+
+@keyframes balanceoHoja {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3.4deg); }
+}

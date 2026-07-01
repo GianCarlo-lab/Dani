@@ -1,0 +1,63 @@
+/**
+ * Design tokens for the whole page: background layers, the romantic
+ * palette, depth-band shading, timing, and the z-index scale. Every
+ * other stylesheet reads these — nothing here should reference
+ * another file.
+ *
+ * NOTE: the palette hex values below are intentionally duplicated in
+ * js/utilities.js (Bouquet.constants.PALETTE). Flower SVGs are built
+ * as strings and injected via innerHTML, and this project has a real
+ * history of breaking inside constrained embedded browsers (a
+ * WhatsApp/Telegram in-app viewer once silently disabled JS). To stay
+ * safe there, flower fills use literal hex values from JS rather than
+ * `var(--x)` inside SVG `fill` attributes. If you change a color here,
+ * change it in utilities.js too.
+ */
+:root {
+  /* background */
+  --bg1: #050308;
+  --bg2: #0e0a16;
+  --bg3: #1b1226;
+  --gold: #f6c453;
+
+  /* romantic palette */
+  --pink-pastel: #f8d9e2;
+  --pink-strong: #e0356b;
+  --white-bloom: #ffffff;
+  --cream: #fff2c2;
+  --yellow-light: #ffe9a8;
+  --lilac: #d9c2f0;
+  --violet: #8a5fc9;
+  --coral-red: #ff6f61;
+  --orange-muted: #e8935a;
+  --olive: #6b7a3a;
+  --green-dark: #2e4d2f;
+
+  /* depth bands: back/mid/front — consumed by bouquet.css [data-depth] rules */
+  --depth-back-brightness: .82;
+  --depth-back-saturate: .85;
+  --depth-back-shadow: 0 2px 3px rgba(0, 0, 0, .22);
+
+  --depth-mid-brightness: .94;
+  --depth-mid-saturate: .95;
+  --depth-mid-shadow: 0 3px 6px rgba(0, 0, 0, .32);
+
+  --depth-front-brightness: 1.05;
+  --depth-front-saturate: 1.05;
+  --depth-front-shadow: 0 5px 10px rgba(0, 0, 0, .4);
+
+  /* timing */
+  --sway-duration-min: 5.2s;
+  --sway-duration-max: 8.5s;
+  --bloom-stagger-base: .15s;
+
+  /* z-index scale */
+  --z-bg: 0;
+  --z-bokeh: 1;
+  --z-bouquet-back: 10;
+  --z-bouquet-mid: 20;
+  --z-bouquet-front: 30;
+  --z-particles: 40;
+  --z-title: 50;
+  --z-ui: 60;
+}
