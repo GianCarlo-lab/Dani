@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Querer</title>
+<style>
+  :root{
+    --bg1:#050308;
+    --bg2:#0e0a16;
+    --bg3:#1b1226;
+    --gold:#f6c453;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0; padding:0; height:100%; width:100%;
+    overflow:hidden;
+    background:radial-gradient(ellipse at 50% 25%, var(--bg3), var(--bg2) 55%, var(--bg1) 100%);
+    font-family:'Georgia', 'Times New Roman', serif;
+    touch-action:manipulation;
+  }
+  .stage{
+    position:relative;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+  }
+
+  /* soft floating particles / sparkle */
+  .sparkle{
+    position:absolute;
+    border-radius:50%;
+    background:var(--gold);
+    opacity:0;
+    animation:sparkle 4s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes sparkle{
+    0%{opacity:0; transform:scale(0);}
+    50%{opacity:.9; transform:scale(1);}
+    100%{opacity:0; transform:scale(0);}
+  }
+
+  /* Title / dedication text */
+  .titulo{
+    position:absolute;
+    top:5%;
+    left:50%;
+    color:#ffe3ef;
+    text-align:center;
+    font-size:clamp(1.5rem,7vw,2.5rem);
+    letter-spacing:2px;
+    opacity:0;
+    text-shadow:0 0 18px rgba(255,190,90,.5);
+    animation:apareceTituloMain 1.6s ease 2.2s forwards;
+    z-index:5;
+    width:92%;
+  }
+  .titulo .linea{
+    display:block;
+    font-size:clamp(.7rem,3vw,.9rem);
+    letter-spacing:.3px;
+    color:#ffe7c2;
+    margin-top:7px;
+    font-family:'Trebuchet MS', sans-serif;
+    font-style:italic;
+    opacity:0;
+    animation:apareceLinea 1.2s ease forwards;
+  }
+  .titulo .l1{animation-delay:2.9s;}
+  .titulo .l2{animation-delay:3.35s;}
+  .titulo .l3{animation-delay:3.8s;}
+  .titulo .firma{
+    display:block;
+    font-size:clamp(.68rem,2.6vw,.82rem);
+    letter-spacing:3px;
+    color:var(--gold);
+    margin-top:12px;
+    font-family:'Trebuchet MS', sans-serif;
+    text-transform:uppercase;
+    opacity:0;
+    animation:apareceLinea 1.2s ease 4.25s forwards;
+  }
+  @keyframes apareceLinea{
+    0%{opacity:0; transform:translateY(10px);}
+    100%{opacity:1; transform:translateY(0);}
+  }
+  @keyframes apareceTituloMain{
+    0%{opacity:0; transform:translate(-50%,10px);}
+    100%{opacity:1; transform:translate(-50%,0);}
+  }
+
+  /* Bouquet: no base/pot — stems just grow up from beyond the bottom edge */
+  .ramo{
+    position:absolute;
+    left:50%;
+    bottom:0;
+    transform:translateX(-50%);
+    width:min(99vw,520px);
+    height:100%;
+  }
+
+  .brizna{
+    position:absolute;
+    bottom:-25px;
+    width:3px;
+    border-radius:3px 3px 0 0;
+    background:linear-gradient(to top,#0f2c17,#2e6b3e 55%,#3d8a50);
+    transform-origin:bottom center;
+    opacity:0;
+    animation:creceBrizna 1s ease-out forwards;
+  }
+  @keyframes creceBrizna{
+    0%{height:0; opacity:0;}
+    100%{opacity:.9;}
+  }
+
+  /* stems container: anchored a little below the visible bottom edge,
+     so the bouquet reads as growing up out of frame, not sitting on a base */
+  .tallos{
+    position:absolute;
+    bottom:-25px;
+    left:50%;
+    width:0;
+    height:0;
+  }
+  /* each stem-group rotates as ONE rigid unit (stem + leaf + flower)
+     so the bloom always stays attached to the tip of its own stem */
+  .tallo-grupo{
+    position:absolute;
+    bottom:0;
+    left:0;
+    width:0;
+    height:0;
+    transform-origin:0 0;
+  }
+  .tallo{
+    position:absolute;
+    bottom:0;
+    left:-2px;
+    width:4px;
+    background:linear-gradient(to top,#245430,#4c9a5c);
+    border-radius:3px;
+    transform-origin:bottom center;
+    animation:creceTallo 0.9s ease-out forwards;
+    animation-fill-mode:both;
+  }
+  @keyframes creceTallo{
+    0%{height:0; opacity:0;}
+    100%{opacity:1;}
+  }
+
+  .hoja{
+    position:absolute;
+    width:17px;
+    height:10px;
+    background:linear-gradient(135deg,#5aa66a,#3d7d4c);
+    border-radius:0 100% 0 100%;
+    opacity:0;
+    animation:apareceHoja .6s ease forwards;
+  }
+  .hoja.euca{
+    width:11px;
+    height:11px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #a9c2a0, #7c9f79 70%, #5f8663);
+  }
+  @keyframes apareceHoja{
+    0%{opacity:0; transform:scale(0) rotate(var(--rot,0deg));}
+    100%{opacity:1; transform:scale(1) rotate(var(--rot,0deg));}
+  }
+
+  /* anchor sitting exactly at the tip of the (rotated) stem; it
+     counter-rotates so every bloom faces the same upright direction */
+  .flor-anchor{
+    position:absolute;
+    left:0;
+    width:0;
+    height:0;
+  }
+
+  /* flower bloom */
+  .flor{
+    position:absolute;
+    left:0;
+    top:0;
+    transform:translate(-50%,-72%) scale(0);
+    opacity:0;
+    animation:floreceFlor .9s cubic-bezier(.34,1.56,.64,1) forwards;
+  }
+  @keyframes floreceFlor{
+    0%{opacity:0; transform:translate(-50%,-72%) scale(0) rotate(-15deg);}
+    70%{opacity:1;}
+    100%{opacity:1; transform:translate(-50%,-72%) scale(1) rotate(0deg);}
+  }
+  .flor svg{
+    width:100%;
+    height:100%;
+    display:block;
+    animation:respirar 4.5s ease-in-out infinite;
+    animation-delay:inherit;
+    filter:drop-shadow(0 3px 6px rgba(0,0,0,.35)) drop-shadow(0 0 10px rgba(255,220,150,.15));
+  }
+  @keyframes respirar{
+    0%,100%{transform:scale(1) rotate(0deg);}
+    50%{transform:scale(1.035) rotate(1.5deg);}
+  }
+
+  /* ambient hearts */
+  .corazon svg{width:100%; height:100%; filter:drop-shadow(0 3px 6px rgba(0,0,0,.25));}
+  .flotante{
+    position:absolute;
+    bottom:20%;
+    opacity:0;
+    animation:flotar 6s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes flotar{
+    0%{opacity:0; transform:translateY(0) scale(.6) rotate(0deg);}
+    15%{opacity:.9;}
+    85%{opacity:.5;}
+    100%{opacity:0; transform:translateY(-260px) scale(1) rotate(20deg);}
+  }
+
+  .toca{
+    position:absolute;
+    bottom:2.5%;
+    left:50%;
+    transform:translateX(-50%);
+    color:#ffe0b8;
+    font-size:.7rem;
+    opacity:0;
+    animation:apareceTituloMain 1s ease 4.6s forwards, latido 1.6s ease-in-out 5.5s infinite;
+    letter-spacing:2px;
+    z-index:5;
+  }
+  @keyframes latido{
+    0%,100%{opacity:.55;}
+    50%{opacity:1;}
+  }
+</style>
+</head>
+<body>
+
+<noscript>
+  <div style="position:fixed;inset:0;background:#1b1226;color:#ffe3ef;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:Georgia,serif;font-size:1rem;line-height:1.5;">
+    Para ver el ramo animado, abre este archivo con un navegador (Chrome o Safari) en vez del visor de WhatsApp/Telegram — mantén presionado el archivo y elige "Abrir con".
+  </div>
+</noscript>
+
+<div class="stage" id="stage">
+  <div class="titulo">Para mi Gordita
+    <span class="linea l1">no hay flor que alcance para decirte cuánto te quiero,</span>
+    <span class="linea l2">así que te traje un ramo entero.</span>
+    <span class="linea l3">rosas, tulipanes, lirios, amapolas y narcisos, todos para ti.</span>
+    <span class="firma">con todo mi corazón ♡</span>
+  </div>
+
+  <div class="ramo" id="ramo">
+    <!-- flowers, leaves, grass and stems injected by JS -->
+  </div>
+
+  <div class="toca">toca la pantalla</div>
+</div>
+
+<script>
+(function(){
+  const ramo = document.getElementById('ramo');
+  const stage = document.getElementById('stage');
+
+  // Romantic accent palette for ambient floating hearts / sparkle
+  const coloresAmbiente = ['#ff5d8f','#ff8fa3','#e0356b','#c65fa8','#ffd166'];
+
+  /* ---------- petal shape helpers ---------- */
+  function petalPointed(reach, width){
+    const tipY = 50 - reach, bellyY = 50 - reach*0.5;
+    return `M50,50 C${50-width},${bellyY} ${50-width*0.7},${tipY+6} 50,${tipY} `
+         + `C${50+width*0.7},${tipY+6} ${50+width},${bellyY} 50,50 Z`;
+  }
+  // simple smooth-tipped (rounded) petal — single point tip, no notch
+  function petalRound(reach, width){
+    const tipY = 50 - reach, bellyY = 50 - reach*0.55;
+    return `M50,50 C${50-width},${bellyY} ${50-width},${tipY+width*0.35} 50,${tipY} `
+         + `C${50+width},${tipY+width*0.35} ${50+width},${bellyY} 50,50 Z`;
+  }
+  function ring(count, offsetDeg, reach, width, fill, opacity, shapeFn){
+    let out = '';
+    for(let i=0;i<count;i++){
+      const angle = offsetDeg + (360/count)*i;
+      out += `<path d="${shapeFn(reach,width)}" transform="rotate(${angle} 50 50)" fill="${fill}" opacity="${opacity}"/>`;
+    }
+    return out;
+  }
+  function svgWrap(inner){
+    return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+  }
+
+  /* ---------- five flower species ---------- */
+  function roseSVG(s){
+    let m = '';
+    m += ring(6, 0,  46, 16, s.outer, 0.97, petalPointed);
+    m += ring(6, 30, 33, 14, s.mid,   0.97, petalPointed);
+    m += ring(5, 12, 20, 10, s.inner, 0.98, petalPointed);
+    m += ring(4, 40, 9,  6,  s.core,  0.9,  petalPointed);
+    m += `<circle cx="50" cy="50" r="3" fill="${s.core}" opacity="0.55"/>`;
+    return svgWrap(m);
+  }
+  // tulip: a closed upward cup, NOT a flat rosette — petals concentrated
+  // within a narrow upward fan (like a real tulip bulb silhouette)
+  function tulipanSVG(s){
+    let m = '';
+    m += `<path d="${petalRound(38,15)}" transform="rotate(-54 50 50)" fill="${s.mid}" opacity="0.9"/>`;
+    m += `<path d="${petalRound(38,15)}" transform="rotate(54 50 50)" fill="${s.mid}" opacity="0.9"/>`;
+    m += `<path d="${petalRound(46,17)}" transform="rotate(-24 50 50)" fill="${s.outer}" opacity="0.97"/>`;
+    m += `<path d="${petalRound(49,18)}" transform="rotate(0 50 50)" fill="${s.outer}" opacity="0.97"/>`;
+    m += `<path d="${petalRound(46,17)}" transform="rotate(24 50 50)" fill="${s.outer}" opacity="0.97"/>`;
+    m += `<ellipse cx="50" cy="61" rx="7" ry="4" fill="${s.core}" opacity="0.55"/>`;
+    return svgWrap(m);
+  }
+  // lily: long slender open petals with a bright midrib streak,
+  // plus long protruding stamens — the lily's signature feature
+  function lirioSVG(s){
+    let m = '';
+    m += ring(6, 0, 50, 8, s.outer, 0.97, petalPointed);
+    m += ring(6, 0, 30, 3, s.mid,   0.85, petalPointed); // midrib highlight down each petal
+    for(let i=0;i<6;i++){
+      const angle = (360/6)*i + 30;
+      const rad = angle*Math.PI/180;
+      const x2 = 50 + Math.sin(rad)*20;
+      const y2 = 50 - Math.cos(rad)*20;
+      m += `<line x1="50" y1="50" x2="${x2}" y2="${y2}" stroke="${s.core}" stroke-width="1.4" opacity="0.9"/>`;
+      m += `<circle cx="${x2}" cy="${y2}" r="2.6" fill="${s.core}" opacity="0.95"/>`;
+    }
+    m += `<circle cx="50" cy="50" r="3.5" fill="${s.mid}" opacity="0.9"/>`;
+    return svgWrap(m);
+  }
+  function amapolaSVG(s){
+    let m = '';
+    m += ring(4, 10, 42, 22, s.outer, 0.92, petalRound);
+    m += ring(4, 55, 30, 16, s.mid,   0.85, petalRound);
+    m += `<circle cx="50" cy="50" r="13" fill="${s.core}" opacity="0.95"/>`;
+    for(let i=0;i<10;i++){
+      const angle = (360/10)*i;
+      const rad = angle*Math.PI/180;
+      const x2 = 50 + Math.sin(rad)*15;
+      const y2 = 50 - Math.cos(rad)*15;
+      m += `<circle cx="${x2}" cy="${y2}" r="1.4" fill="${s.core}" opacity="0.9"/>`;
+    }
+    return svgWrap(m);
+  }
+  function narcisoSVG(s){
+    let m = '';
+    m += ring(6, 0, 40, 15, s.outer, 0.96, petalPointed);
+    m += `<path d="M38,52 L35,34 Q50,25 65,34 L62,52 Z" fill="${s.trumpet}" opacity="0.95"/>`;
+    m += `<ellipse cx="50" cy="34" rx="15" ry="5" fill="${s.trumpetRim}" opacity="0.9"/>`;
+    m += `<ellipse cx="50" cy="52" rx="12" ry="4" fill="${s.core}" opacity="0.6"/>`;
+    return svgWrap(m);
+  }
+
+  const especies = {
+    rosa: { render: roseSVG, sets:[
+      {outer:'#ffffff', mid:'#fbeef2', inner:'#f2cfdd', core:'#e6a9c3'},
+      {outer:'#f4a7c4', mid:'#ec7fac', inner:'#d85590', core:'#b83b76'},
+      {outer:'#c65fa8', mid:'#a13d8d', inner:'#7c2c72', core:'#5c1f56'}
+    ]},
+    tulipan: { render: tulipanSVG, sets:[
+      {outer:'#ff8fab', mid:'#ff5d8f', inner:'#ffd6e3', core:'#c2185b'},
+      {outer:'#c9a0ff', mid:'#a374e0', inner:'#e9d9ff', core:'#6a3fa0'},
+      {outer:'#ff6f61', mid:'#e5483a', inner:'#ffd1c9', core:'#a5271c'}
+    ]},
+    lirio: { render: lirioSVG, sets:[
+      {outer:'#fff7f9', mid:'#ffe1ea', core:'#e0793f'},
+      {outer:'#ffe9c7', mid:'#ffd79a', core:'#c25a1f'}
+    ]},
+    amapola: { render: amapolaSVG, sets:[
+      {outer:'#ff4d4d', mid:'#ff7a52', core:'#2b1b16'},
+      {outer:'#ff6f3c', mid:'#ff9a52', core:'#2b1b16'}
+    ]},
+    narciso: { render: narcisoSVG, sets:[
+      {outer:'#fffdf2', trumpet:'#ffb703', trumpetRim:'#ffd166', core:'#f4a300'},
+      {outer:'#fff2c2', trumpet:'#ff8c00', trumpetRim:'#ffbe4d', core:'#e08e00'}
+    ]}
+  };
+
+  function florSVG(tipo, variant){
+    const esp = especies[tipo];
+    return esp.render(esp.sets[variant % esp.sets.length]);
+  }
+
+  function heartSVG(color){
+    return `<svg viewBox="0 0 32 29" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 29 C16 29 0 18.5 0 8.8 C0 2.9 4.6 0 9 0 C12.2 0 14.8 1.9 16 4.6 C17.2 1.9 19.8 0 23 0 C27.4 0 32 2.9 32 8.8 C32 18.5 16 29 16 29 Z" fill="${color}"/>
+    </svg>`;
+  }
+
+  /* ---------- bouquet layout: ALL stems share the same base point (x:0) —
+     like a real hand-tied bouquet — and only fan out by rotation angle,
+     never by horizontal position. Stems are noticeably taller now.
+     back layer (11 stems): tallest, thinner blooms, behind
+     front layer (9 stems): shorter, bigger, denser — main visible blooms
+     roses tripled (2 -> 6) per request; every entry below always gets
+     exactly one flower, verified 1:1 with tallos.length === 20            */
+  const tallos = [
+    // --- back layer: single origin point, irregular angles/heights/order,
+    //     like real stems tied together by hand — not a mirrored pattern ---
+    {rot:-24, h:328, size:43, tipo:'rosa',    v:0},
+    {rot:-19, h:352, size:47, tipo:'narciso', v:1},
+    {rot:-14, h:340, size:45, tipo:'lirio',   v:0},
+    {rot:-9,  h:378, size:49, tipo:'amapola', v:1},
+    {rot:-5,  h:365, size:44, tipo:'rosa',    v:2},
+    {rot:0,   h:398, size:50, tipo:'tulipan', v:0},
+    {rot:4,   h:358, size:46, tipo:'rosa',    v:1},
+    {rot:9,   h:384, size:48, tipo:'lirio',   v:1},
+    {rot:14,  h:346, size:44, tipo:'tulipan', v:1},
+    {rot:19,  h:370, size:47, tipo:'amapola', v:0},
+    {rot:24,  h:332, size:43, tipo:'narciso', v:0},
+
+    // --- front layer: single origin point, irregular, bigger & closer ---
+    {rot:-21, h:245, size:53, tipo:'lirio',   v:0},
+    {rot:-16, h:270, size:60, tipo:'rosa',    v:0},
+    {rot:-11, h:255, size:58, tipo:'tulipan', v:0},
+    {rot:-4,  h:292, size:70, tipo:'rosa',    v:1},
+    {rot:2,   h:305, size:76, tipo:'rosa',    v:2},
+    {rot:7,   h:278, size:64, tipo:'amapola', v:0},
+    {rot:13,  h:260, size:57, tipo:'lirio',   v:1},
+    {rot:18,  h:285, size:62, tipo:'narciso', v:1},
+    {rot:23,  h:248, size:52, tipo:'tulipan', v:1},
+  ];
+
+  const tallosWrap = document.createElement('div');
+  tallosWrap.className = 'tallos';
+  ramo.appendChild(tallosWrap);
+
+  // grass clustered around the same central base point as the stems,
+  // tighter now since the bouquet converges to one point
+  const NUM_BRIZNAS = 24;
+  for(let i=0;i<NUM_BRIZNAS;i++){
+    const bx = -85 + (170/(NUM_BRIZNAS-1))*i + (Math.random()*8-4);
+    const el = document.createElement('div');
+    el.className = 'brizna';
+    el.style.left = `calc(50% + ${bx}px)`;
+    el.style.height = (55 + Math.random()*120) + 'px';
+    el.style.transform = `rotate(${(bx/85)*24 + (Math.random()*10-5)}deg)`;
+    el.style.animationDelay = (0.15 + Math.random()*0.6) + 's';
+    ramo.appendChild(el);
+  }
+
+  tallos.forEach((t, i) => {
+    // stems near the center bloom first, outer ones follow — a gentle wave
+    const delay = 0.15 + Math.abs(t.rot)/45;
+
+    // rigid group: stem, leaf and flower all rotate together as one unit,
+    // so the bloom is always exactly at the tip of its own stem.
+    // ALL stems share the exact same base point (left:50%, x:0) and only
+    // differ by rotation angle — a real hand-tied bouquet fan.
+    const grupo = document.createElement('div');
+    grupo.className = 'tallo-grupo';
+    grupo.style.left = '50%';
+    grupo.style.transform = `rotate(${t.rot}deg)`;
+    tallosWrap.appendChild(grupo);
+
+    const tallo = document.createElement('div');
+    tallo.className = 'tallo';
+    tallo.style.height = t.h + 'px';
+    tallo.style.animationDelay = delay + 's';
+    grupo.appendChild(tallo);
+
+    // leaves along the stem — every stem gets at least one leaf
+    const side = t.rot <= 0 ? -1 : 1;
+    const hoja1 = document.createElement('div');
+    hoja1.className = 'hoja' + (i % 3 === 0 ? ' euca' : '');
+    hoja1.style.left = (side * 13) + 'px';
+    hoja1.style.bottom = (t.h * 0.4) + 'px';
+    hoja1.style.setProperty('--rot', (side * 32) + 'deg');
+    hoja1.style.animationDelay = (delay + 0.25) + 's';
+    grupo.appendChild(hoja1);
+
+    if(i % 2 === 0){
+      const hoja2 = document.createElement('div');
+      hoja2.className = 'hoja euca';
+      hoja2.style.left = (-side * 12) + 'px';
+      hoja2.style.bottom = (t.h * 0.62) + 'px';
+      hoja2.style.setProperty('--rot', (-side * 38) + 'deg');
+      hoja2.style.animationDelay = (delay + 0.35) + 's';
+      grupo.appendChild(hoja2);
+    }
+
+    // anchor at the stem tip, counter-rotated so every bloom faces upright
+    const anchor = document.createElement('div');
+    anchor.className = 'flor-anchor';
+    anchor.style.bottom = t.h + 'px';
+    anchor.style.transform = `rotate(${-t.rot}deg)`;
+    grupo.appendChild(anchor);
+
+    const bloomDelay = delay + 0.45;
+
+    const flor = document.createElement('div');
+    flor.className = 'flor';
+    flor.style.width = t.size + 'px';
+    flor.style.height = t.size + 'px';
+    flor.style.animationDelay = bloomDelay + 's';
+    flor.innerHTML = florSVG(t.tipo, t.v);
+    anchor.appendChild(flor);
+  });
+
+  // floating hearts + sparkles after bouquet blooms
+  function lanzarFlotante(){
+    const el = document.createElement('div');
+    el.className = 'flotante';
+    const isHeart = Math.random() > 0.4;
+    const size = 12 + Math.random()*14;
+    el.style.left = (20 + Math.random()*60) + '%';
+    el.style.width = size+'px';
+    el.style.height = (isHeart? size*0.9 : size) + 'px';
+    el.style.animationDuration = (5 + Math.random()*3) + 's';
+    if(isHeart){
+      const c = coloresAmbiente[Math.floor(Math.random()*coloresAmbiente.length)];
+      el.innerHTML = heartSVG(c);
+    } else {
+      el.style.background = 'var(--gold)';
+      el.style.borderRadius = '50%';
+      el.style.opacity = '0.7';
+    }
+    stage.appendChild(el);
+    setTimeout(()=>el.remove(), 9000);
+  }
+
+  setTimeout(()=>{
+    setInterval(lanzarFlotante, 700);
+  }, 2200);
+
+  // ambient sparkles across background
+  for(let i=0;i<18;i++){
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    const size = 2 + Math.random()*3;
+    s.style.width = size+'px';
+    s.style.height = size+'px';
+    s.style.left = Math.random()*100 + '%';
+    s.style.top = Math.random()*70 + '%';
+    s.style.animationDelay = (Math.random()*4) + 's';
+    s.style.animationDuration = (3+Math.random()*3) + 's';
+    stage.appendChild(s);
+  }
+
+  // gentle tap interaction: burst of hearts on touch/click
+  function burst(x,y){
+    for(let i=0;i<8;i++){
+      const el = document.createElement('div');
+      el.className = 'flotante';
+      const size = 10+Math.random()*10;
+      el.style.left = 'calc(' + x + 'px - 10px)';
+      el.style.bottom = 'auto';
+      el.style.top = y + 'px';
+      el.style.width = size+'px';
+      el.style.height = size*0.9+'px';
+      el.style.animationDuration = (2+Math.random()*1.5)+'s';
+      const c = coloresAmbiente[Math.floor(Math.random()*coloresAmbiente.length)];
+      el.innerHTML = heartSVG(c);
+      stage.appendChild(el);
+      setTimeout(()=>el.remove(), 3500);
+    }
+  }
+  stage.addEventListener('click', (e)=>burst(e.clientX, e.clientY));
+  stage.addEventListener('touchstart', (e)=>{
+    const t = e.touches[0];
+    burst(t.clientX, t.clientY);
+  }, {passive:true});
+})();
+</script>
+</body>
+</html>
