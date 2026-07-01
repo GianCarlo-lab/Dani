@@ -24,8 +24,17 @@
     goldSoft: 0xffe0a3,
     starWarm: 0xfff2e0,
     starCool: 0xd8c6ff,
-    heart: 0xff5f8f,
-    heartCore: 0xffd6e6
+    heart: 0xff2f7e,
+    heartCore: 0xffe27a,
+    heartRim: 0xff5fc2,
+    // saturated, "glow in the dark" neon variants used for the rings'
+    // words and their dust — much more vivid than the soft pastel
+    // PALETTE colors above, on purpose
+    neonPink: 0xff2fa6,
+    neonMagenta: 0xe619c9,
+    neonViolet: 0xa64bff,
+    neonGold: 0xffce33,
+    neonRose: 0xff4f8f
   };
 
   var PHRASES = [
@@ -65,13 +74,15 @@
   function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
   function lerp(a, b, t) { return a + (b - a) * t; }
 
-  // ring tone groups, cycled per ring index — mixes the requested
-  // pink/wine/purple/gold-glow palette across the 6 rings
+  // ring tone groups, cycled per ring index — saturated neon versions
+  // of the pink/wine/purple/gold palette so the words read as glowing
+  // (used with THREE.AdditiveBlending, so brighter/more saturated =
+  // more "phosphorescent", not just a lighter tint)
   var RING_TONES = [
-    { text: '#ffd8ea', glow: PALETTE.magenta },
-    { text: '#f3c7ff', glow: PALETTE.violet },
-    { text: '#ffe6b8', glow: PALETTE.gold },
-    { text: '#ffc2dd', glow: PALETTE.wine }
+    { text: '#ff6fc9', glow: PALETTE.neonPink },
+    { text: '#c98bff', glow: PALETTE.neonViolet },
+    { text: '#ffd94d', glow: PALETTE.neonGold },
+    { text: '#ff5fae', glow: PALETTE.neonMagenta }
   ];
 
   window.Universo.constants = {
@@ -81,6 +92,7 @@
     RING_COUNT: 6,
     STAR_COUNT: 2200,
     DUST_COUNT: 220,
+    RING_DUST_COUNT: 130,
     HEART_POINT_COUNT: 3200,
     HEART_EMIT_POOL: 16,
     PLANET_RADIUS: 34,

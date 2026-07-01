@@ -21,7 +21,11 @@
     var scale = 2.05;
     var positions = new Float32Array(count * 3);
     var colors = new Float32Array(count * 3);
-    var core = new THREE.Color(C.PALETTE.heartCore);
+    // three-tone gradient (edge -> rim -> core) instead of a two-tone
+    // lerp, plus a brightness boost past 1.0 on the core so it reads
+    // as genuinely glowing under additive blending, not just pale
+    var core = new THREE.Color(C.PALETTE.heartCore).multiplyScalar(1.15);
+    var rim = new THREE.Color(C.PALETTE.heartRim);
     var edge = new THREE.Color(C.PALETTE.heart);
 
     for (var i = 0; i < count; i++) {
@@ -35,7 +39,9 @@
       positions[i * 3 + 1] = o.y * s * scale + jitter;
       positions[i * 3 + 2] = (rand() - 0.5) * 6 * s;
 
-      var tint = edge.clone().lerp(core, s);
+      var tint = s < 0.5
+        ? edge.clone().lerp(rim, s * 2)
+        : rim.clone().lerp(core, (s - 0.5) * 2);
       colors[i * 3] = tint.r;
       colors[i * 3 + 1] = tint.g;
       colors[i * 3 + 2] = tint.b;
@@ -46,13 +52,13 @@
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
     var material = new THREE.PointsMaterial({
-      size: 1.4,
+      size: 1.7,
       map: window.Universo.glow.getGlowTexture(),
       alphaTest: 0.02,
       sizeAttenuation: true,
       vertexColors: true,
       transparent: true,
-      opacity: 0.95,
+      opacity: 1,
       depthWrite: false,
       blending: THREE.AdditiveBlending
     });
@@ -89,12 +95,12 @@
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
     var material = new THREE.PointsMaterial({
-      size: 1.8,
+      size: 2,
       map: window.Universo.glow.getGlowTexture(),
-      color: C.PALETTE.goldSoft,
+      color: C.PALETTE.neonGold,
       sizeAttenuation: true,
       transparent: true,
-      opacity: 0.75,
+      opacity: 0.85,
       depthWrite: false,
       blending: THREE.AdditiveBlending
     });
@@ -125,9 +131,15 @@
     var emitters = buildEmitters(rand);
     group.add(emitters.points);
 
-    var haloBack = window.Universo.glow.createGlowSprite(C.PALETTE.heart, 60, 0.5);
+    var haloBack = window.Universo.glow.createGlowSprite(C.PALETTE.heart, 62, 0.5);
     haloBack.position.z = -6;
     group.add(haloBack);
+
+    // a tighter, brighter core glow on top of the wider halo — two
+    // glow radii read as noticeably more "lit from within" than one
+    var haloCore = window.Universo.glow.createGlowSprite(C.PALETTE.heartRim, 30, 0.6);
+    haloCore.position.z = -3;
+    group.add(haloCore);
 
     var clock = 0;
     return {

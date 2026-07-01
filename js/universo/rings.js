@@ -25,8 +25,8 @@
     measure.font = font;
     var textWidth = measure.measureText(text).width;
 
-    var paddingX = 28;
-    var paddingY = 20;
+    var paddingX = 32;
+    var paddingY = 24;
     var canvas = document.createElement('canvas');
     canvas.width = Math.ceil(textWidth + paddingX * 2);
     canvas.height = Math.ceil(fontSize + paddingY * 2);
@@ -35,16 +35,71 @@
     ctx.font = font;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.shadowColor = tone.glowCss || 'rgba(255,180,220,.9)';
-    ctx.shadowBlur = 14;
+
+    // phosphorescent look: a wide soft outer glow, a tighter brighter
+    // inner glow, then a crisp white-hot core pass on top — three
+    // layers instead of one reads much more like it's actually
+    // emitting light rather than just having a drop-shadow
+    ctx.shadowColor = tone.glowCss;
+    ctx.shadowBlur = 26;
     ctx.fillStyle = tone.text;
     ctx.fillText(text, canvas.width / 2, canvas.height / 2);
-    // a second crisp pass on top of the glow so the letters stay legible
-    ctx.shadowBlur = 0;
     ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+    ctx.shadowBlur = 10;
+    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#fffdf6';
+    ctx.globalAlpha = 0.55;
+    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+    ctx.globalAlpha = 1;
 
     var texture = new THREE.CanvasTexture(canvas);
     return { texture: texture, aspect: canvas.width / canvas.height };
+  }
+
+  /**
+   * A thin, sparkling particle band running alongside the words — the
+   * literal "rings of Saturn" dust, distinct from the guide line (which
+   * is just a faint positional reference).
+   */
+  function buildRingDust(radius, spread, tone, rand) {
+    var count = C.RING_DUST_COUNT;
+    var positions = new Float32Array(count * 3);
+    var colors = new Float32Array(count * 3);
+    var base = new THREE.Color(tone.glow);
+    var bright = base.clone().lerp(new THREE.Color(0xffffff), 0.55);
+
+    for (var i = 0; i < count; i++) {
+      var a = rand() * Math.PI * 2;
+      var r = radius + (rand() - 0.5) * spread;
+      positions[i * 3] = Math.cos(a) * r;
+      positions[i * 3 + 1] = (rand() - 0.5) * spread * 0.18;
+      positions[i * 3 + 2] = Math.sin(a) * r;
+
+      var tint = base.clone().lerp(bright, rand());
+      colors[i * 3] = tint.r;
+      colors[i * 3 + 1] = tint.g;
+      colors[i * 3 + 2] = tint.b;
+    }
+
+    var geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    var material = new THREE.PointsMaterial({
+      size: 1.5,
+      map: window.Universo.glow.getGlowTexture(),
+      sizeAttenuation: true,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.95,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+
+    return new THREE.Points(geometry, material);
   }
 
   function buildRing(index, opts, rand) {
@@ -65,8 +120,16 @@
       guidePoints.push(new THREE.Vector3(Math.cos(ga) * opts.radius, 0, Math.sin(ga) * opts.radius));
     }
     var guideGeom = new THREE.BufferGeometry().setFromPoints(guidePoints);
-    var guideMat = new THREE.LineBasicMaterial({ color: tone.glow, transparent: true, opacity: 0.18 });
+    var guideMat = new THREE.LineBasicMaterial({
+      color: tone.glow,
+      transparent: true,
+      opacity: 0.28,
+      blending: THREE.AdditiveBlending
+    });
     spinGroup.add(new THREE.Line(guideGeom, guideMat));
+
+    // the Saturn-like sparkling dust band running alongside the words
+    spinGroup.add(buildRingDust(opts.radius, opts.wordScale * 1.1, tone, rand));
 
     var words = [];
     var phaseOffset = rand() * Math.PI * 2;
@@ -78,7 +141,8 @@
       var material = new THREE.SpriteMaterial({
         map: built.texture,
         transparent: true,
-        depthWrite: false
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
       });
       var sprite = new THREE.Sprite(material);
       var height = opts.wordScale;
